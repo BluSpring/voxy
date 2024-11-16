@@ -1,6 +1,5 @@
 package me.cortex.voxy.client.core.model;
 
-import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.systems.VertexSorter;
@@ -9,7 +8,9 @@ import me.cortex.voxy.client.core.gl.GlTexture;
 import me.cortex.voxy.client.core.gl.shader.Shader;
 import me.cortex.voxy.client.core.gl.shader.ShaderType;
 import me.cortex.voxy.client.core.rendering.util.GlStateCapture;
-import net.minecraft.block.*;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.GlUniform;
@@ -34,15 +35,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.opengl.ARBFramebufferObject.*;
-import static org.lwjgl.opengl.ARBImaging.GL_FUNC_ADD;
-import static org.lwjgl.opengl.ARBImaging.glBlendEquation;
 import static org.lwjgl.opengl.ARBShaderImageLoadStore.GL_FRAMEBUFFER_BARRIER_BIT;
 import static org.lwjgl.opengl.ARBShaderImageLoadStore.glMemoryBarrier;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL14C.glBlendFuncSeparate;
 import static org.lwjgl.opengl.GL20C.glUniformMatrix4fv;
-import static org.lwjgl.opengl.GL45C.glBlitNamedFramebuffer;
 import static org.lwjgl.opengl.GL45C.glGetTextureImage;
 
 //Builds a texture for each face of a model
@@ -284,7 +282,8 @@ public class ModelTextureBakery {
         try {
             BufferRenderer.draw(bb.end());
         } catch (IllegalStateException e) {
-            System.err.println("Got empty buffer builder! for block " + state);
+            if (FabricLoader.getInstance().isDevelopmentEnvironment())
+                System.err.println("Got empty buffer builder! for block " + state);
         }
 
         glMemoryBarrier(GL_FRAMEBUFFER_BARRIER_BIT);
