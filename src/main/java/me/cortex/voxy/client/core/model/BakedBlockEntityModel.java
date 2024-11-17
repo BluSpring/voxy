@@ -110,7 +110,9 @@ public class BakedBlockEntityModel {
                 }
             }
             layer.putInto(bb);
-            BufferRenderer.draw(bb.end());
+            var mesh = bb.endNullable();
+            if (mesh != null)
+                BufferRenderer.draw(mesh);
         }
     }
 
