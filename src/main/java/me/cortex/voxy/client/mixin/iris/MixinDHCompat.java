@@ -1,9 +1,12 @@
 package me.cortex.voxy.client.mixin.iris;
 
 import me.cortex.voxy.client.config.VoxyConfig;
+import me.cortex.voxy.client.core.IGetVoxelCore;
+import me.cortex.voxy.client.core.VoxelCore;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.compat.dh.DHCompat;
 import net.minecraft.client.MinecraftClient;
+import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -61,6 +64,21 @@ public abstract class MixinDHCompat {
             int lodChunkDist = VoxyConfig.CONFIG.renderDistance;
             int lodBlockDist = lodChunkDist * 16;
             cir.setReturnValue((float) ((double) (lodBlockDist + 512) * Math.sqrt(2.0)));
+        }
+    }
+
+    @Inject(method = "getProjection", at = @At("HEAD"), cancellable = true)
+    private static void checkVoxyProjection(CallbackInfoReturnable<Matrix4f> cir) {
+        if (voxyEnabled) {
+            cir.setReturnValue(VoxelCore.computeProjectionMat());
+        }
+    }
+
+    @Inject(method = "getDepthTex", at = @At("HEAD"), cancellable = true)
+    private void getVoxyDepthTex(CallbackInfoReturnable<Integer> cir) {
+        if (voxyEnabled) {
+            var voxelCore = ((IGetVoxelCore) MinecraftClient.getInstance().worldRenderer).getVoxelCore();
+            cir.setReturnValue(voxelCore.getPostProcessing().getDepthStencil().id);
         }
     }
 }

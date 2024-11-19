@@ -16,10 +16,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL15.GL_READ_WRITE;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
-import static org.lwjgl.opengl.GL20C.glGetUniformLocation;
-import static org.lwjgl.opengl.GL20C.glGetUniformfv;
 import static org.lwjgl.opengl.GL43.GL_DEPTH_STENCIL_TEXTURE_MODE;
-import static org.lwjgl.opengl.GL44C.glBindImageTextures;
 import static org.lwjgl.opengl.GL45C.glBlitNamedFramebuffer;
 import static org.lwjgl.opengl.GL45C.glTextureParameterf;
 
@@ -193,5 +190,9 @@ public class PostProcessing {
         glDepthMask(true);
 
         this.glStateCapture.restore();
+    }
+
+    public GlTexture getDepthStencil() {
+        return depthStencil;
     }
 }

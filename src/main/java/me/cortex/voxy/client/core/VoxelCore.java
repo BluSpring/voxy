@@ -7,9 +7,12 @@ import me.cortex.voxy.client.core.rendering.*;
 import me.cortex.voxy.client.core.rendering.building.RenderGenerationService;
 import me.cortex.voxy.client.core.rendering.post.PostProcessing;
 import me.cortex.voxy.client.core.util.IrisUtil;
+import me.cortex.voxy.client.importers.WorldImporter;
 import me.cortex.voxy.client.saver.ContextSelectionSystem;
 import me.cortex.voxy.common.world.WorldEngine;
-import me.cortex.voxy.client.importers.WorldImporter;
+import net.caffeinemc.mods.sodium.client.render.chunk.terrain.DefaultTerrainRenderPasses;
+import net.irisshaders.iris.Iris;
+import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.ClientBossBar;
 import net.minecraft.client.render.Camera;
@@ -25,7 +28,8 @@ import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.lwjgl.opengl.GL30C.GL_DRAW_FRAMEBUFFER_BINDING;
 
@@ -161,7 +165,7 @@ public class VoxelCore {
         return projection;
     }
 
-    private static Matrix4f computeProjectionMat() {
+    public static Matrix4f computeProjectionMat() {
         return new Matrix4f(RenderSystem.getProjectionMatrix()).mulLocal(
                 makeProjectionMatrix(0.05f, MinecraftClient.getInstance().gameRenderer.getFarPlaneDistance()).invert()
         ).mulLocal(makeProjectionMatrix(16, 16*3000));
@@ -179,8 +183,10 @@ public class VoxelCore {
         //this.renderer.getModelManager().updateEntry(0, Blocks.COMPARATOR.getDefaultState());
         //this.renderer.getModelManager().updateEntry(0, Blocks.OAK_LEAVES.getDefaultState());
 
-        //var fb = Iris.getPipelineManager().getPipelineNullable().getSodiumTerrainPipeline().getTerrainSolidFramebuffer();
-        //fb.bind();
+        if (Iris.getPipelineManager().getPipelineNullable() instanceof IrisRenderingPipeline pipeline) {
+            var fb = pipeline.getSodiumPrograms().getFramebuffer(DefaultTerrainRenderPasses.SOLID);
+            fb.bind();
+        }
 
         var projection = computeProjectionMat();
         //var projection = RenderSystem.getProjectionMatrix();//computeProjectionMat();
@@ -274,5 +280,9 @@ public class VoxelCore {
 
     public WorldEngine getWorldEngine() {
         return this.world;
+    }
+
+    public PostProcessing getPostProcessing() {
+        return postProcessing;
     }
 }
