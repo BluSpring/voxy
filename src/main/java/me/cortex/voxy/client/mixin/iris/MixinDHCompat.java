@@ -1,11 +1,13 @@
 package me.cortex.voxy.client.mixin.iris;
 
+import java.io.IOException;
+
 import me.cortex.voxy.client.config.VoxyConfig;
 import me.cortex.voxy.client.core.IGetVoxelCore;
 import me.cortex.voxy.client.core.VoxelCore;
 import net.irisshaders.iris.Iris;
+import net.irisshaders.iris.api.v0.IrisApi;
 import net.irisshaders.iris.compat.dh.DHCompat;
-import net.minecraft.client.MinecraftClient;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.io.IOException;
+import net.minecraft.client.MinecraftClient;
 
 @Mixin(value = DHCompat.class, remap = false)
 public abstract class MixinDHCompat {
@@ -28,7 +30,7 @@ public abstract class MixinDHCompat {
 
     @Inject(method = "checkFrame", at = @At("HEAD"), cancellable = true)
     private static void checkVoxyFrame(CallbackInfoReturnable<Boolean> cir) {
-        if (VoxyConfig.CONFIG.enabled != voxyEnabled || guiScale != MinecraftClient.getInstance().options.getGuiScale().getValue() && Iris.isPackInUseQuick()) {
+        if (VoxyConfig.CONFIG.enabled != voxyEnabled || guiScale != MinecraftClient.getInstance().options.getGuiScale().getValue() && IrisApi.getInstance().isShaderPackInUse()) {
             voxyEnabled = VoxyConfig.CONFIG.enabled;
             guiScale = MinecraftClient.getInstance().options.getGuiScale().getValue();
 
