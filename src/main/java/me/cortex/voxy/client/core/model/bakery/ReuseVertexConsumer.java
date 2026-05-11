@@ -1,14 +1,11 @@
 package me.cortex.voxy.client.core.model.bakery;
 
 
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import me.cortex.voxy.common.util.MemoryBuffer;
-import net.minecraft.client.model.geom.builders.UVPair;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
-import net.minecraft.client.renderer.texture.MipmapStrategy;
-import net.minecraft.client.resources.model.geometry.BakedQuad;
 import org.lwjgl.system.MemoryUtil;
 
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 
 public final class ReuseVertexConsumer implements VertexConsumer {
     public static final int VERTEX_FORMAT_SIZE = 24;
@@ -88,31 +85,38 @@ public final class ReuseVertexConsumer implements VertexConsumer {
         return this;
     }
 
-    @Override
-    public VertexConsumer setLineWidth(float f) {
-        return null;
-    }
+//    @Override
+//    public VertexConsumer setLineWidth(float f) {
+//        return null;
+//    }
 
     public ReuseVertexConsumer quad(BakedQuad quad) {
-        return this.quad(quad, false);
+        return this.quad(quad, false, false);
     }
 
-    public ReuseVertexConsumer quad(BakedQuad quad, boolean forceSolid) {
+    public ReuseVertexConsumer quad(BakedQuad quad, boolean forceSolid, boolean isTranslucent) {
         int meta = 0;
-        meta |= forceSolid?0:(quad.materialInfo().layer()!=ChunkSectionLayer.SOLID?1:0);//has discard
-        meta |= quad.materialInfo().isTinted()?4:0;//has tinting
+        meta |= forceSolid?0:(isTranslucent?1:0);//has discard
+        meta |= quad.isTinted()?4:0;//has tinting
         return this.quad(quad, meta);
     }
 
     public ReuseVertexConsumer quad(BakedQuad quad, int metadata) {
-        this.anyShaded |= quad.materialInfo().shade();
-        this.anyDarkendTex |= quad.materialInfo().sprite().contents().mipmapStrategy == MipmapStrategy.DARK_CUTOUT;
+        this.anyShaded |= quad.isShade();
+//        this.anyDarkendTex |= quad.materialInfo().sprite().contents().mipmapStrategy == MipmapStrategy.DARK_CUTOUT;
         this.ensureCanPut();
+        var vertices = quad.getVertices();
         for (int i = 0; i < 4; i++) {
-            var pos = quad.position(i);
-            this.addVertex(pos.x(), pos.y(), pos.z());
-            long puv = quad.packedUV(i);
-            this.setUv(UVPair.unpackU(puv),UVPair.unpackV(puv));
+            var index = i * 8;
+            var x = Float.intBitsToFloat(vertices[index + 0]);
+            var y = Float.intBitsToFloat(vertices[index + 1]);
+            var z = Float.intBitsToFloat(vertices[index + 2]);
+            var ignored = vertices[index + 3];
+            var u = Float.intBitsToFloat(vertices[index + 4]);
+            var v = Float.intBitsToFloat(vertices[index + 5]);
+
+            this.addVertex(x, y, z)
+                .setUv(u, v);
 
             this.meta(metadata|this.globalOrMetadata);
         }

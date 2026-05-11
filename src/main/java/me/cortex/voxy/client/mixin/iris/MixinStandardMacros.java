@@ -1,5 +1,8 @@
 package me.cortex.voxy.client.mixin.iris;
 
+import java.util.Collection;
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -11,9 +14,6 @@ import net.irisshaders.iris.helpers.StringPair;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-
-import java.util.Collection;
-import java.util.List;
 
 @Mixin(value = StandardMacros.class, remap = false)
 public abstract class MixinStandardMacros {
@@ -28,10 +28,9 @@ public abstract class MixinStandardMacros {
     private static ImmutableList<StringPair> voxy$injectVoxyDefine(Collection<StringPair> list, Operation<ImmutableList<StringPair>> original) {
         if (VoxyConfig.CONFIG.isRenderingEnabled() && IrisUtil.SHADER_SUPPORT) {
             define((List<StringPair>) list, "VOXY", Integer.toString(IrisShaderPatch.SHADER_DEFINE_VERSION));
-            /*
             if (IrisShaderPatch.IMPERSONATE_DISTANT_HORIZONS) {
                 define((List<StringPair>) list, "DISTANT_HORIZONS");
-            }*/
+            }
         }
         return ImmutableList.copyOf(list);
     }

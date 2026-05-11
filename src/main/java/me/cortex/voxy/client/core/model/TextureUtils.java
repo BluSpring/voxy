@@ -1,10 +1,8 @@
 package me.cortex.voxy.client.core.model;
 
-import net.caffeinemc.mods.sodium.client.util.color.ColorSRGB;
-import net.minecraft.client.renderer.texture.MipmapGenerator;
-import net.minecraft.util.ARGB;
-
 import java.util.Arrays;
+
+import net.caffeinemc.mods.sodium.client.util.color.ColorSRGB;
 
 //Texturing utils to manipulate data from the model bakery
 public class TextureUtils {
@@ -279,7 +277,7 @@ public class TextureUtils {
                 r / 4,
                 g / 4,
                 b / 4,
-                darkend ? ((int) a) / 4 : ARGB.linearToSrgbChannel(a / 4)
+                darkend ? ((int) a) / 4 : /*ColorSRGB.linearToSrgbChannel(a / 4)*/ (int) (a / 4)
         );
     }
 

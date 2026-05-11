@@ -1,5 +1,24 @@
 package me.cortex.voxy.client.iris;
 
+import static org.lwjgl.opengl.ARBDirectStateAccess.glBindTextureUnit;
+import static org.lwjgl.opengl.ARBUniformBufferObject.glBindBufferBase;
+import static org.lwjgl.opengl.GL33C.glBindSampler;
+import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.OptionalInt;
+import java.util.Set;
+import java.util.function.IntConsumer;
+import java.util.function.IntSupplier;
+import java.util.function.LongConsumer;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import com.google.common.collect.ImmutableSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -19,24 +38,36 @@ import net.irisshaders.iris.gl.state.FogMode;
 import net.irisshaders.iris.gl.state.ValueUpdateNotifier;
 import net.irisshaders.iris.gl.texture.InternalTextureFormat;
 import net.irisshaders.iris.gl.texture.TextureType;
-import net.irisshaders.iris.gl.uniform.*;
+import net.irisshaders.iris.gl.uniform.BooleanUniform;
+import net.irisshaders.iris.gl.uniform.DynamicLocationalUniformHolder;
+import net.irisshaders.iris.gl.uniform.FloatSupplier;
+import net.irisshaders.iris.gl.uniform.LocationalUniformHolder;
+import net.irisshaders.iris.gl.uniform.Uniform;
+import net.irisshaders.iris.gl.uniform.UniformHolder;
+import net.irisshaders.iris.gl.uniform.UniformType;
+import net.irisshaders.iris.gl.uniform.UniformUpdateFrequency;
 import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
 import net.irisshaders.iris.targets.RenderTarget;
 import net.irisshaders.iris.targets.RenderTargets;
 import net.irisshaders.iris.uniforms.CommonUniforms;
 import net.irisshaders.iris.uniforms.custom.CustomUniforms;
-import net.irisshaders.iris.uniforms.custom.cached.*;
-import org.joml.*;
+import net.irisshaders.iris.uniforms.custom.cached.BooleanCachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.CachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.Float2VectorCachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.Float3VectorCachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.Float4MatrixCachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.Float4VectorCachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.FloatCachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.Int2VectorCachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.Int3VectorCachedUniform;
+import net.irisshaders.iris.uniforms.custom.cached.IntCachedUniform;
+import org.joml.Matrix4f;
+import org.joml.Vector2f;
+import org.joml.Vector2i;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+import org.joml.Vector4f;
 import org.lwjgl.system.MemoryUtil;
-
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.Collectors;
-
-import static org.lwjgl.opengl.ARBDirectStateAccess.glBindTextureUnit;
-import static org.lwjgl.opengl.ARBUniformBufferObject.glBindBufferBase;
-import static org.lwjgl.opengl.GL33C.glBindSampler;
-import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
 
 public class IrisVoxyRenderPipelineData {
     public IrisVoxyRenderPipeline thePipeline;
@@ -465,23 +496,20 @@ public class IrisVoxyRenderPipelineData {
             }
 
             @Override
-            public boolean addDefaultSampler(TextureType type, IntSupplier texture, ValueUpdateNotifier notifier, Supplier<GlSampler> sampler, String... names) {
+            public boolean addDefaultSampler(TextureType type, IntSupplier texture, ValueUpdateNotifier notifier, GlSampler sampler, String... names) {
                 Logger.error("Unsupported default sampler");
                 return false;
             }
 
             @Override
-            public boolean addDynamicSampler(TextureType type, IntSupplier texture, Supplier<GlSampler> sampler, String... names) {
+            public boolean addDynamicSampler(TextureType type, IntSupplier texture, GlSampler sampler, String... names) {
                 return this.addDynamicSampler(type, texture, null, sampler, names);
             }
 
             @Override
-            public boolean addDynamicSampler(TextureType type, IntSupplier texture, ValueUpdateNotifier notifier, Supplier<GlSampler> sampler, String... names) {
+            public boolean addDynamicSampler(TextureType type, IntSupplier texture, ValueUpdateNotifier notifier, GlSampler sampler, String... names) {
                 if (!this.hasSampler(names)) return false;
-                samplerSet.add(new TextureWSampler(this.name(names), texture, sampler!=null?()->{
-                    var s = sampler.get();
-                    return s!=null?s.getId():-1;
-                }:()->-1));
+                samplerSet.add(new TextureWSampler(this.name(names), texture, sampler!=null? sampler::getId :()->-1));
                 return true;
             }
 

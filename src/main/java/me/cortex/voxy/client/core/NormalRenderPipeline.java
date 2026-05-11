@@ -1,34 +1,43 @@
 package me.cortex.voxy.client.core;
 
+import static org.lwjgl.opengl.GL30C.GL_BLEND;
+import static org.lwjgl.opengl.GL30C.GL_COLOR_ATTACHMENT0;
+import static org.lwjgl.opengl.GL30C.GL_DEPTH_COMPONENT;
+import static org.lwjgl.opengl.GL30C.GL_DEPTH_TEST;
+import static org.lwjgl.opengl.GL30C.GL_FRAMEBUFFER;
+import static org.lwjgl.opengl.GL30C.GL_NEAREST;
+import static org.lwjgl.opengl.GL30C.GL_ONE;
+import static org.lwjgl.opengl.GL30C.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL30C.GL_RGBA8;
+import static org.lwjgl.opengl.GL30C.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL30C.GL_STENCIL_TEST;
+import static org.lwjgl.opengl.GL30C.GL_TEXTURE_MAG_FILTER;
+import static org.lwjgl.opengl.GL30C.GL_TEXTURE_MIN_FILTER;
+import static org.lwjgl.opengl.GL30C.glBindFramebuffer;
+import static org.lwjgl.opengl.GL30C.glBlendFuncSeparate;
+import static org.lwjgl.opengl.GL30C.glDisable;
+import static org.lwjgl.opengl.GL30C.glEnable;
+import static org.lwjgl.opengl.GL30C.glUniform4f;
+import static org.lwjgl.opengl.GL43.GL_DEPTH_STENCIL_TEXTURE_MODE;
+import static org.lwjgl.opengl.GL45C.glBindTextureUnit;
+import static org.lwjgl.opengl.GL45C.glTextureParameterf;
+
+import java.util.List;
+import java.util.function.BooleanSupplier;
+
+import com.mojang.blaze3d.systems.RenderSystem;
 import me.cortex.voxy.client.config.VoxyConfig;
 import me.cortex.voxy.client.core.gl.GlFramebuffer;
 import me.cortex.voxy.client.core.gl.GlTexture;
-import me.cortex.voxy.client.core.gl.shader.Shader;
-import me.cortex.voxy.client.core.gl.shader.ShaderType;
 import me.cortex.voxy.client.core.rendering.Viewport;
 import me.cortex.voxy.client.core.rendering.hierachical.AsyncNodeManager;
 import me.cortex.voxy.client.core.rendering.hierachical.HierarchicalOcclusionTraverser;
 import me.cortex.voxy.client.core.rendering.hierachical.NodeCleaner;
 import me.cortex.voxy.client.core.rendering.post.FullscreenBlit;
-import me.cortex.voxy.client.core.rendering.util.DepthFramebuffer;
 import me.cortex.voxy.client.core.util.GPUTiming;
-import net.minecraft.client.Minecraft;
 import org.joml.Matrix4f;
-import org.lwjgl.system.MemoryStack;
 
-import java.util.List;
-import java.util.function.BooleanSupplier;
-
-import static org.lwjgl.opengl.ARBComputeShader.glDispatchCompute;
-import static org.lwjgl.opengl.ARBShaderImageLoadStore.glBindImageTexture;
-import static org.lwjgl.opengl.GL30.GL_DEPTH_ATTACHMENT;
-import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME;
-import static org.lwjgl.opengl.GL30C.*;
-import static org.lwjgl.opengl.GL33C.*;
-import static org.lwjgl.opengl.GL43.GL_DEPTH_STENCIL_TEXTURE_MODE;
-import static org.lwjgl.opengl.GL45.glGetNamedFramebufferAttachmentParameteri;
-import static org.lwjgl.opengl.GL45C.glBindTextureUnit;
-import static org.lwjgl.opengl.GL45C.glTextureParameterf;
+import net.minecraft.client.renderer.FogRenderer;
 
 public class NormalRenderPipeline extends AbstractRenderPipeline {
     private GlTexture colourTex;
@@ -89,18 +98,18 @@ public class NormalRenderPipeline extends AbstractRenderPipeline {
     protected void finish(Viewport<?> viewport, int sourceFrameBuffer, int srcWidth, int srcHeight) {
         this.finalBlit.bind();
 
-        boolean fogCoversAllRendering = viewport.fogParameters.environmentalEnd()<VoxyRenderSystem.getRenderDistance();
+        boolean fogCoversAllRendering = RenderSystem.getShaderFogEnd()<VoxyRenderSystem.getRenderDistance();
 
         if (this.useEnvFog) {
-            float start = viewport.fogParameters.environmentalStart();
-            float end = viewport.fogParameters.environmentalEnd();
+            float start = RenderSystem.getShaderFogStart();
+            float end = RenderSystem.getShaderFogEnd();
             if (Math.abs(end-start)>1) {
                 float invEndFogDelta = 1f / (end - start);
                 float endDistance = Math.max(VoxyRenderSystem.getRenderDistance(), 20*16);//TODO: make this constant a config option
                 endDistance *= (float)Math.sqrt(3);
                 float startDelta = -start * invEndFogDelta;
                 glUniform4f(4, invEndFogDelta, startDelta, Math.clamp(endDistance*invEndFogDelta+startDelta, 0, 1),0);//
-                glUniform4f(5, viewport.fogParameters.red(), viewport.fogParameters.green(), viewport.fogParameters.blue(), viewport.fogParameters.alpha());
+                glUniform4f(5, FogRenderer.fogRed, FogRenderer.fogGreen, FogRenderer.fogBlue, 0f);
             } else {
                 glUniform4f(4, 0, 0, 0, 0);
                 glUniform4f(5, 0, 0, 0, 0);

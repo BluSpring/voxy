@@ -1,14 +1,15 @@
 package me.cortex.voxy.client;
 
+import java.util.UUID;
+
 import me.cortex.voxy.common.Logger;
 import me.cortex.voxy.commonImpl.ImportManager;
 import me.cortex.voxy.commonImpl.importers.IDataImporter;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.LerpingBossEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent;
-import java.util.UUID;
 
 public class ClientImportManager extends ImportManager {
     protected class ClientImportTask extends ImportTask {
@@ -44,7 +45,7 @@ public class ClientImportManager extends ImportManager {
                 long delta = Math.max(System.currentTimeMillis() - this.startTime, 1);
 
                 String msg = "Voxy world import finished in " + (delta/1000) + " seconds, averaging " + (int)(total/(delta/1000f)) + " chunks per second";
-                Minecraft.getInstance().gui.getChat().addClientSystemMessage(Component.literal(msg));
+                Minecraft.getInstance().gui.getChat().addMessage(Component.literal(msg));
                 Logger.info(msg);
             });
         }

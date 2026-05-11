@@ -1,33 +1,5 @@
 package me.cortex.voxy.commonImpl.importers;
 
-import me.cortex.voxy.common.Logger;
-import me.cortex.voxy.common.thread.Service;
-import me.cortex.voxy.common.thread.ServiceManager;
-import me.cortex.voxy.common.util.ByteBufferBackedInputStream;
-import me.cortex.voxy.common.util.Pair;
-import me.cortex.voxy.common.voxelization.VoxelizedSection;
-import me.cortex.voxy.common.voxelization.WorldConversionFactory;
-import me.cortex.voxy.common.voxelization.WorldVoxilizedSectionMipper;
-import me.cortex.voxy.common.world.WorldEngine;
-import me.cortex.voxy.common.world.WorldUpdater;
-import me.cortex.voxy.common.world.other.Mapper;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
-import org.apache.commons.io.IOUtils;
-import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.util.zstd.Zstd;
-import org.tukaani.xz.BasicArrayCache;
-import org.tukaani.xz.ResettableArrayCache;
-import org.tukaani.xz.XZInputStream;
-
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -41,10 +13,43 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
+
+import me.cortex.voxy.common.Logger;
+import me.cortex.voxy.common.thread.Service;
+import me.cortex.voxy.common.thread.ServiceManager;
+import me.cortex.voxy.common.util.ByteBufferBackedInputStream;
+import me.cortex.voxy.common.util.Pair;
+import me.cortex.voxy.common.voxelization.VoxelizedSection;
+import me.cortex.voxy.common.voxelization.WorldVoxilizedSectionMipper;
+import me.cortex.voxy.common.world.WorldEngine;
+import me.cortex.voxy.common.world.WorldUpdater;
+import me.cortex.voxy.common.world.other.Mapper;
+import org.apache.commons.io.IOUtils;
+import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.util.zstd.Zstd;
+import org.tukaani.xz.BasicArrayCache;
+import org.tukaani.xz.ResettableArrayCache;
+import org.tukaani.xz.XZInputStream;
+
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class DHImporter implements IDataImporter {
     private final Connection db;
@@ -54,8 +59,8 @@ public class DHImporter implements IDataImporter {
     private final int bottomOfWorld;
     private final int worldHeightSections;
     private final Holder.Reference<Biome> defaultBiome;
-    private final Registry<Biome> biomeRegistry;
-    private final Registry<Block> blockRegistry;
+    private final HolderLookup<Biome> biomeRegistry;
+    private final HolderLookup<Block> blockRegistry;
     private Thread runner;
     private volatile boolean isRunning = false;
     private final AtomicInteger processedChunks = new AtomicInteger();
@@ -104,7 +109,7 @@ public class DHImporter implements IDataImporter {
         this.defaultBiome = this.biomeRegistry.getOrThrow(Biomes.PLAINS);
         this.blockRegistry = mcWorld.registryAccess().lookupOrThrow(Registries.BLOCK);
 
-        this.bottomOfWorld = mcWorld.getMinY();
+        this.bottomOfWorld = mcWorld.getMinBuildHeight();
         int worldHeight = mcWorld.getHeight();
         this.worldHeightSections = (worldHeight+15)/16;
 
@@ -227,8 +232,8 @@ public class DHImporter implements IDataImporter {
             if (idx == -1)
                 throw new IllegalStateException();
             {
-                var biomeRes = Identifier.parse(encEntry.substring(0, idx));
-                var biome = this.biomeRegistry.get(biomeRes).orElse(this.defaultBiome);
+                var biomeRes = ResourceLocation.parse(encEntry.substring(0, idx));
+                var biome = this.biomeRegistry.get(ResourceKey.create(Registries.BIOME, biomeRes)).orElse(this.defaultBiome);
                 biomeId = this.engine.getMapper().getIdForBiome(biome);
             }
             {
@@ -241,8 +246,8 @@ public class DHImporter implements IDataImporter {
                     if (sIdx != -1) {
                         bStateStr = encEntry.substring(sIdx + STATE_STRING_SEPARATOR.length());
                     }
-                    var bId = Identifier.parse(encEntry.substring(b, sIdx != -1 ? sIdx : encEntry.length()));
-                    var maybeBlock = this.blockRegistry.get(bId);
+                    var bId = ResourceLocation.parse(encEntry.substring(b, sIdx != -1 ? sIdx : encEntry.length()));
+                    var maybeBlock = this.blockRegistry.get(ResourceKey.create(Registries.BLOCK, bId));
                     Block block = Blocks.AIR;
                     if (maybeBlock.isPresent()) {
                         block = maybeBlock.get().value();

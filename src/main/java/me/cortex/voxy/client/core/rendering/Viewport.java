@@ -1,14 +1,19 @@
 package me.cortex.voxy.client.core.rendering;
 
+import java.lang.reflect.Field;
+
 import me.cortex.voxy.client.core.RenderProperties;
 import me.cortex.voxy.client.core.gl.GlBuffer;
 import me.cortex.voxy.client.core.rendering.util.DepthFramebuffer;
 import me.cortex.voxy.client.core.rendering.util.HiZBuffer;
-import net.caffeinemc.mods.sodium.client.util.FogParameters;
-import net.minecraft.util.Mth;
-import org.joml.*;
+import org.joml.FrustumIntersection;
+import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
+import org.joml.Vector3f;
+import org.joml.Vector3i;
+import org.joml.Vector4f;
 
-import java.lang.reflect.Field;
+import net.minecraft.util.Mth;
 
 public abstract class Viewport <A extends Viewport<A>> {
     //public final HiZBuffer2 hiZBuffer = new HiZBuffer2();
@@ -36,7 +41,7 @@ public abstract class Viewport <A extends Viewport<A>> {
     public double cameraX;
     public double cameraY;
     public double cameraZ;
-    public FogParameters fogParameters;
+//    public FogParameters fogParameters;
 
     public final Matrix4f MVP = new Matrix4f();
     public final Vector3i section = new Vector3i();
@@ -94,10 +99,10 @@ public abstract class Viewport <A extends Viewport<A>> {
         return (A) this;
     }
 
-    public A setFogParameters(FogParameters fogParameters) {
-        this.fogParameters = fogParameters;
-        return (A) this;
-    }
+//    public A setFogParameters(FogParameters fogParameters) {
+//        this.fogParameters = fogParameters;
+//        return (A) this;
+//    }
 
     public A update() {
         //MVP

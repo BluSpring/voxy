@@ -3,17 +3,19 @@ package me.cortex.voxy.client.mixin.minecraft;
 import me.cortex.voxy.client.ICheekyClientChunkCache;
 import me.cortex.voxy.client.config.VoxyConfig;
 import me.cortex.voxy.common.world.service.VoxelIngestService;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.multiplayer.ClientChunkCache;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.chunk.LevelChunk;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import net.minecraft.client.multiplayer.ClientChunkCache;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.LevelChunk;
+
+import net.fabricmc.loader.api.FabricLoader;
 
 @Mixin(ClientChunkCache.class)
 public class MixinClientChunkCache implements ICheekyClientChunkCache {
@@ -31,7 +33,7 @@ public class MixinClientChunkCache implements ICheekyClientChunkCache {
             return null;
         }
         //Verify that the position of the chunk is the same as the requested position
-        if (chunk.getPos().x() == x && chunk.getPos().z() == z) {
+        if (chunk.getPos().x == x && chunk.getPos().z == z) {
             return chunk;//The chunk is at the requested position
         }
         //Otherwise return null
@@ -41,7 +43,7 @@ public class MixinClientChunkCache implements ICheekyClientChunkCache {
     @Inject(method = "drop", at = @At("HEAD"))
     public void voxy$captureChunkBeforeUnload(ChunkPos pos, CallbackInfo ci) {
         if (VoxyConfig.CONFIG.ingestEnabled && BOBBY_INSTALLED) {
-            var chunk = this.voxy$cheekyGetChunk(pos.x(), pos.z());
+            var chunk = this.voxy$cheekyGetChunk(pos.x, pos.z);
             if (chunk != null) {
                 VoxelIngestService.tryAutoIngestChunk(chunk);
             }

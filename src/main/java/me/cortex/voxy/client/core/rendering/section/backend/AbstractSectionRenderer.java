@@ -1,21 +1,20 @@
 package me.cortex.voxy.client.core.rendering.section.backend;
 
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+
 import me.cortex.voxy.client.core.AbstractRenderPipeline;
 import me.cortex.voxy.client.core.RenderProperties;
 import me.cortex.voxy.client.core.gl.shader.Shader;
 import me.cortex.voxy.client.core.gl.shader.ShaderType;
 import me.cortex.voxy.client.core.model.ModelStore;
 import me.cortex.voxy.client.core.rendering.Viewport;
-import me.cortex.voxy.client.core.rendering.section.geometry.BasicSectionGeometryData;
 import me.cortex.voxy.client.core.rendering.section.geometry.IGeometryData;
 import me.cortex.voxy.common.Logger;
+
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.dimension.DimensionType;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 //Takes in mesh ids from the hierachical traversal and may perform more culling then renders it
 public abstract class AbstractSectionRenderer <T extends Viewport<T>, J extends IGeometryData> {
@@ -75,12 +74,12 @@ public abstract class AbstractSectionRenderer <T extends Viewport<T>, J extends 
     public void addDebug(List<String> lines) {}
 
     protected static void addDirectionalFaceTint(Shader.Builder<?> builder, ClientLevel cl) {
-        var cardinalLight = cl.cardinalLighting();
-        builder.define("NO_SHADE_FACE_TINT", cardinalLight.up());
-        builder.define("UP_FACE_TINT", cardinalLight.up());
-        builder.define("DOWN_FACE_TINT", cardinalLight.down());
-        builder.define("Z_AXIS_FACE_TINT", cardinalLight.north());//assumed here that Direction.SOUTH returns the same value
-        builder.define("X_AXIS_FACE_TINT", cardinalLight.east());//assumed here that Direction.WEST returns the same value
+        var shade = false;
+        builder.define("NO_SHADE_FACE_TINT", cl.getShade(Direction.UP, shade));
+        builder.define("UP_FACE_TINT", cl.getShade(Direction.UP, shade));
+        builder.define("DOWN_FACE_TINT", cl.getShade(Direction.DOWN, shade));
+        builder.define("Z_AXIS_FACE_TINT", cl.getShade(Direction.NORTH, shade));//assumed here that Direction.SOUTH returns the same value
+        builder.define("X_AXIS_FACE_TINT", cl.getShade(Direction.EAST, shade));//assumed here that Direction.WEST returns the same value
         /*
         //TODO: generate the tinting table here and use the replacement feature
         float[] tints = new float[7];

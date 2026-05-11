@@ -1,8 +1,9 @@
 package me.cortex.voxy.client.taskbar;
 
 import me.cortex.voxy.common.Logger;
-import net.minecraft.client.Minecraft;
 import org.apache.commons.lang3.SystemUtils;
+
+import net.minecraft.client.Minecraft;
 
 public abstract class Taskbar {
     public interface ITaskbar {
@@ -37,7 +38,7 @@ public abstract class Taskbar {
     private static ITaskbar createInterface() {
         if (SystemUtils.IS_OS_WINDOWS) {
             try {
-                return new WindowsTaskbar(Minecraft.getInstance().getWindow().handle());
+                return new WindowsTaskbar(Minecraft.getInstance().getWindow().getWindow());
             } catch (Exception e) {
                 Logger.error("Unable to create windows taskbar interface", e);
                 return new NoopTaskbar();
