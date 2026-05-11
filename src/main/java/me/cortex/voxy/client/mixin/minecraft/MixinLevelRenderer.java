@@ -9,15 +9,17 @@ import me.cortex.voxy.common.Logger;
 import me.cortex.voxy.common.world.WorldEngine;
 import me.cortex.voxy.commonImpl.VoxyCommon;
 import me.cortex.voxy.commonImpl.WorldIdentifier;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.LevelRenderer;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.LevelRenderer;
 
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRenderer implements IGetVoxyRenderSystem {
@@ -92,5 +94,18 @@ public abstract class MixinLevelRenderer implements IGetVoxyRenderSystem {
             }
         }
         instance.updateDedicatedThreads();
+    }
+
+    @ModifyArg(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FogRenderer;setupFog(Lnet/minecraft/client/Camera;Lnet/minecraft/client/renderer/FogRenderer$FogMode;FZF)V"), index = 2)
+    private float voxy$setupFogDistance(float distance) {
+        if (!VoxyConfig.CONFIG.isRenderingEnabled()) return distance;
+
+        var vrs = IGetVoxyRenderSystem.getNullable();
+        if (vrs == null) return distance;
+
+//        float endDistance = Math.max(VoxyRenderSystem.getRenderDistance(), 20*16);//TODO: make this constant a config option
+        float endDistance = 999999999;
+        endDistance *= (float)Math.sqrt(3);
+        return endDistance;
     }
 }

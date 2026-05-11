@@ -1,15 +1,16 @@
 package me.cortex.voxy.client.iris;
 
-import me.cortex.voxy.client.config.VoxyConfig;
-import me.cortex.voxy.client.core.IGetVoxyRenderSystem;
-import net.irisshaders.iris.gl.uniform.UniformHolder;
-import net.minecraft.client.Minecraft;
-import org.joml.Matrix4f;
-import org.joml.Matrix4fc;
+import static net.irisshaders.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
 
 import java.util.function.Supplier;
 
-import static net.irisshaders.iris.gl.uniform.UniformUpdateFrequency.PER_FRAME;
+import me.cortex.voxy.client.config.VoxyConfig;
+import me.cortex.voxy.client.core.IGetVoxyRenderSystem;
+import net.irisshaders.iris.gl.uniform.UniformHolder;
+import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
+
+import net.minecraft.client.Minecraft;
 
 public class VoxyUniforms {
 
@@ -57,7 +58,7 @@ public class VoxyUniforms {
                 .uniformMatrix(PER_FRAME, "vxProjInv", new Inverted(VoxyUniforms::getProjection))
                 .uniformMatrix(PER_FRAME, "vxProjPrev", new PreviousMat(VoxyUniforms::getProjection));
 
-        /*
+
         if (IrisShaderPatch.IMPERSONATE_DISTANT_HORIZONS) {
             uniforms
                     .uniform1f(PER_FRAME, "dhNearPlane", ()->16)//Presently hardcoded in voxy
@@ -67,7 +68,7 @@ public class VoxyUniforms {
                     .uniformMatrix(PER_FRAME, "dhProjection", VoxyUniforms::getProjection)
                     .uniformMatrix(PER_FRAME, "dhProjectionInverse", new Inverted(VoxyUniforms::getProjection))
                     .uniformMatrix(PER_FRAME, "dhPreviousProjection", new PreviousMat(VoxyUniforms::getProjection));
-        }*/
+        }
     }
 
 

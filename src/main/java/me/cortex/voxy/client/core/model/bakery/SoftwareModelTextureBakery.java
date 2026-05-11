@@ -47,6 +47,8 @@ import net.minecraft.world.level.levelgen.SingleThreadedRandomSource;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
 
+import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+
 public class SoftwareModelTextureBakery {
     //Note: the first bit of metadata is if alpha discard is enabled
     private static final Matrix4f[] VIEWS = new Matrix4f[6];
@@ -108,8 +110,8 @@ public class SoftwareModelTextureBakery {
 
 
     private void bakeFluidState(BlockState state, int face) {
-        var layer = ItemBlockRenderTypes.getChunkRenderType(state);
-        var vc = layer == RenderType.translucent() ? this.translucentVC :
+        var layer = ItemBlockRenderTypes.getRenderLayer(state.getFluidState());
+        var vc = layer == RenderType.translucent() || FluidRenderHandlerRegistry.INSTANCE.isBlockTransparent(state.getBlock()) ? this.translucentVC :
             Util.make(this.opaqueVC, c -> {
                 if (layer == RenderType.cutout())
                     c.setDefaultMeta(c.getDefaultMeta()|1);//set discard
@@ -132,7 +134,18 @@ public class SoftwareModelTextureBakery {
 
             @Override
             public float getShade(Direction direction, boolean shade) {
-                return 0;
+                boolean bl = false;
+                if (!shade) {
+                    return bl ? 0.9F : 1.0F;
+                } else {
+                    return switch (direction) {
+                        case DOWN -> bl ? 0.9F : 0.5F;
+                        case UP -> bl ? 0.9F : 1.0F;
+                        case NORTH, SOUTH -> 0.8F;
+                        case WEST, EAST -> 0.6F;
+                        default -> 1.0F;
+                    };
+                }
             }
 
             @Override

@@ -105,11 +105,12 @@ public class NormalRenderPipeline extends AbstractRenderPipeline {
             float end = RenderSystem.getShaderFogEnd();
             if (Math.abs(end-start)>1) {
                 float invEndFogDelta = 1f / (end - start);
-                float endDistance = Math.max(VoxyRenderSystem.getRenderDistance(), 20*16);//TODO: make this constant a config option
+//                float endDistance = Math.max(VoxyRenderSystem.getRenderDistance(), 20*16);//TODO: make this constant a config option
+                float endDistance = 99999999;
                 endDistance *= (float)Math.sqrt(3);
                 float startDelta = -start * invEndFogDelta;
                 glUniform4f(4, invEndFogDelta, startDelta, Math.clamp(endDistance*invEndFogDelta+startDelta, 0, 1),0);//
-                glUniform4f(5, FogRenderer.fogRed, FogRenderer.fogGreen, FogRenderer.fogBlue, 0f);
+                glUniform4f(5, FogRenderer.fogRed, FogRenderer.fogGreen, FogRenderer.fogBlue, 1f);
             } else {
                 glUniform4f(4, 0, 0, 0, 0);
                 glUniform4f(5, 0, 0, 0, 0);
