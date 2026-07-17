@@ -12,6 +12,7 @@ import net.caffeinemc.mods.sodium.client.render.chunk.RenderSectionManager;
 import net.caffeinemc.mods.sodium.client.render.chunk.compile.executor.ChunkBuilder;
 import net.caffeinemc.mods.sodium.client.render.chunk.data.BuiltSectionInfo;
 import net.caffeinemc.mods.sodium.client.render.chunk.map.ChunkTrackerHolder;
+import net.caffeinemc.mods.sodium.client.render.chunk.translucent_sorting.SortBehavior;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -39,7 +40,7 @@ public class MixinRenderSectionManager {
     @Shadow @Final private ChunkBuilder builder;
 
     @Inject(method = "<init>", at = @At("TAIL"))
-    private void voxy$resetChunkTracker(ClientLevel level, int renderDistance, CommandList commandList, CallbackInfo ci) {
+    private void voxy$resetChunkTracker(ClientLevel level, int renderDistance, SortBehavior sortBehavior, CommandList commandList, CallbackInfo ci) {
         if (level.levelRenderer != null) {
             var system = ((IGetVoxyRenderSystem)(level.levelRenderer)).voxy$getRenderSystem();
             if (system != null) {

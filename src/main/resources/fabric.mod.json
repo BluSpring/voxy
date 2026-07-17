@@ -6,10 +6,11 @@
     "commit": "${commit}",
     "buildtime": "${buildtime}"
   },
-  "name": "Voxy",
+  "name": "Voxy (BluSpring's Backport)",
   "description": "Far distance rendering mod utilising LoDs",
   "authors": [
-    "Cortex"
+    "Cortex",
+    "BluSpring"
   ],
   "contact": {
   },
@@ -41,7 +42,7 @@
     "minecraft": ["1.21.1"],
     "fabricloader": ">=0.14.22",
     "fabric-api": ">=0.91.1",
-    "sodium": ["=0.6.13"]
+    "sodium": ["=0.8.12"]
   },
   "breaks": {
     "voxyworldgenv2": "=2.2.2"
